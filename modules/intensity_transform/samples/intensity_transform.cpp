@@ -104,6 +104,61 @@ int main(int argc, char **argv)
 
     // Apply intensity transformations
     Mat imgAutoscaled, imgLog;
+    // PERF START
+#if 1
+    size_t loop_length = 100;
+    {
+        cv::TickMeter tm;
+        tm.start();
+        for (size_t i = 0; i < loop_length; i++)
+        {
+            autoscaling(g_image, imgAutoscaled);
+        }
+        tm.stop();
+        std::cout << "autoscaling processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+    }
+    {
+        cv::TickMeter tm;
+        tm.start();
+        for (size_t i = 0; i < loop_length; i++)
+        {
+            gammaCorrection(g_image, g_imgGamma, g_gamma/100.0f);
+        }
+        tm.stop();
+        std::cout << "gammaCorrection processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+    }
+    {
+        cv::TickMeter tm;
+        tm.start();
+        for (size_t i = 0; i < loop_length; i++)
+        {
+            logTransform(g_image, imgLog);
+        }
+        tm.stop();
+        std::cout << "logTransform processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+    }
+    {
+        cv::TickMeter tm;
+        tm.start();
+        for (size_t i = 0; i < loop_length; i++)
+        {
+            contrastStretching(g_image, g_contrastStretch, g_r1, g_s1, g_r2, g_s2);
+        }
+        tm.stop();
+        std::cout << "contrastStretching processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+    }
+    {
+        cv::TickMeter tm;
+        tm.start();
+        for (size_t i = 0; i < loop_length; i++)
+        {
+            BIMEF(g_image, g_imgBIMEF, g_mu / 100.0f);
+        }
+        tm.stop();
+        std::cout << "BIMEF processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+    }
+    //PERF_STOP
+#endif
     autoscaling(g_image, imgAutoscaled);
     gammaCorrection(g_image, g_imgGamma, g_gamma/100.0f);
     logTransform(g_image, imgLog);
