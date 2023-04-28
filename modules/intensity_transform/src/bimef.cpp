@@ -475,6 +475,7 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
     CV_INSTRUMENT_REGION()
 
     Mat input = input_.getMat();
+    //UMat input = input_.getUMat(ACCESS_RW);
     if (input.empty())
     {
         return;
@@ -483,6 +484,8 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
 
     Mat_<Vec3f> imgDouble;
     input.convertTo(imgDouble, CV_32F, 1/255.0);
+    //UMat u_imgDouble(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //input.convertTo(u_imgDouble, CV_32F, 1/255.0);
 
     // t: scene illumination map
     Mat_<float> t_b(imgDouble.size());
@@ -492,16 +495,36 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
             pixel = std::max(std::max(imgDouble(position[0], position[1])[0],
                                       imgDouble(position[0], position[1])[1]),
                             imgDouble(position[0], position[1])[2]);
+            //pixel = std::max(std::max(u_imgDouble.getMat(ACCESS_READ).at<Vec3f>(position[0], position[1])[0],
+            //                          u_imgDouble.getMat(ACCESS_READ).at<Vec3f>(position[0], position[1])[1]),
+            //                u_imgDouble.getMat(ACCESS_READ).at<Vec3f>(position[0], position[1])[2]);
         }
     );
+    //UMat u_t_b(u_imgDouble.size(), CV_32F, cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //parallel_for_(Range(0, u_imgDouble.rows), [&](const Range& range) {
+    //    const int begin = range.start;
+    //    const int end = range.end;
+    //    for(int y = begin; y < end; y++)
+    //    {
+    //        for(int x = 0; x < u_imgDouble.cols; x++)
+    //        {
+    //            u_t_b.getMat(ACCESS_READ).at<float>(y,x)= std::max(std::max((u_imgDouble.getMat(ACCESS_READ))(x,y)[0],
+    //                                              (u_imgDouble.getMat(ACCESS_READ))(x,y)[1]),
+    //                                              (u_imgDouble.getMat(ACCESS_READ))(x,y)[2]);
+    //        }
+    //    }
+    //});
+    //u_t_b.copyTo(t_b);
 
     const float lambda = 0.5;
     const float sigma = 5;
 
     Mat_<float> t_b_resize;
+    //UMat u_t_b_resize(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
     resize(t_b, t_b_resize, Size(), 0.5, 0.5);
 
     Mat_<float> t_our = tsmooth(t_b_resize, lambda, sigma);
+    //UMat u_t_our = tsmooth(u_t_b_resize, lambda, sigma);
     resize(t_our, t_our, t_b.size());
 
     // k: exposure ratio

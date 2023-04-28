@@ -41,7 +41,6 @@ void autoscaling(const UMat input, UMat& output)
     double multiplier = 255.0 / (maxVal - minVal);
     UMat sub_img(cv::USAGE_ALLOCATE_DEVICE_MEMORY); 
     cv::subtract(input, minVal, sub_img);
-    //cv::divide(sub_img, (maxVal - minVal), sub_img);
     cv::multiply(sub_img, multiplier, output);
 }
 

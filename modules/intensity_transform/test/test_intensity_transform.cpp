@@ -228,8 +228,13 @@ TEST_P(intensity_transform_BIMEF, accuracy)
     const std::string inputFilename = cvtest::findDataFile(directory + filename + ".png");
     Mat img = imread(inputFilename);
     EXPECT_TRUE(!img.empty());
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    img.copyTo(u_image);
     Mat imgBIMEF;
-    BIMEF(img, imgBIMEF);
+    UMat u_imgBIMEF(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //BIMEF(img, imgBIMEF);
+    BIMEF(u_image, u_imgBIMEF);
+    u_imgBIMEF.copyTo(imgBIMEF);
 
     const std::string referenceFilename = cvtest::findDataFile(directory + filename + "_ref.png");
     Mat imgRef = imread(referenceFilename);

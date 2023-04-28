@@ -226,7 +226,7 @@ int main(int argc, char **argv)
         tm.stop();
         std::cout << "contrastStretching processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
     }
-#if 0
+#if 1
     {
         cv::TickMeter tm;
         tm.start();
@@ -238,13 +238,14 @@ int main(int argc, char **argv)
         std::cout << "BIMEF processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
     }
 #endif
-    //PERF_STOP
 #endif
+//PERF_STOP
+
     autoscaling(g_image, imgAutoscaled);
     gammaCorrection(g_image, g_imgGamma, g_gamma/100.0f);
     logTransform(g_image, imgLog);
     contrastStretching(g_image, g_contrastStretch, g_r1, g_s1, g_r2, g_s2);
-    //BIMEF(g_image, g_imgBIMEF, g_mu / 100.0f);
+    BIMEF(g_image, g_imgBIMEF, g_mu / 100.0f);
 
     // Display intensity transformation results
     imshow("Original Image", g_image);
@@ -252,7 +253,7 @@ int main(int argc, char **argv)
     imshow(g_gammaWinName, g_imgGamma);
     imshow("Log Transformation", imgLog);
     imshow(g_contrastWinName, g_contrastStretch);
-    //imshow(g_BIMEFWinName, g_imgBIMEF);
+    imshow(g_BIMEFWinName, g_imgBIMEF);
 
     waitKey(0);
     return 0;
