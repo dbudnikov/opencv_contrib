@@ -24,9 +24,12 @@ TEST(intensity_transform_logTransform, accuracy)
     };
 
     Mat_<uchar> image(10, 10, image_data);
-
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    image.copyTo(u_image);
     Mat res;
-    cv::intensity_transform::logTransform(image, res);
+    UMat u_res(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //cv::intensity_transform::logTransform(image, res);
+    cv::intensity_transform::logTransform(u_image, u_res);
 
     uchar expectedRes_data[] = {
         182, 247, 247, 169, 179, 150, 241, 130, 192, 243,
@@ -42,7 +45,7 @@ TEST(intensity_transform_logTransform, accuracy)
     };
 
     Mat_<uchar> expectedRes(10, 10, expectedRes_data);
-
+    u_res.copyTo(res);
     EXPECT_LE(cvtest::norm(res, expectedRes, NORM_INF), 1);
 }
 
@@ -62,9 +65,13 @@ TEST(intensity_transform_gammaCorrection, accuracy1)
     };
 
     Mat_<uchar> image(10, 10, image_data);
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    image.copyTo(u_image);
 
     Mat res;
-    cv::intensity_transform::gammaCorrection(image, res, 1.0);
+    UMat u_res(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //cv::intensity_transform::gammaCorrection(image, res, 1.0);
+    cv::intensity_transform::gammaCorrection(u_image, u_res, 1.0);
 
     uchar expectedRes_data[] = {
          51, 211, 212,  38,  48,  25, 189,  16,  64, 197,
@@ -80,7 +87,7 @@ TEST(intensity_transform_gammaCorrection, accuracy1)
     };
 
     Mat_<uchar> expectedRes(10, 10, expectedRes_data);
-
+    u_res.copyTo(res);
     EXPECT_LE(cvtest::norm(res, expectedRes, NORM_INF), 1);
 }
 
@@ -100,9 +107,13 @@ TEST(intensity_transform_gammaCorrection, accuracy2)
     };
 
     Mat_<uchar> image(10, 10, image_data);
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    image.copyTo(u_image);
 
     Mat res;
-    cv::intensity_transform::gammaCorrection(image, res, (float)(0.4));
+    UMat u_res(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //cv::intensity_transform::gammaCorrection(image, res, (float)(0.4));
+    cv::intensity_transform::gammaCorrection(u_image, u_res, (float)(0.4));
 
     uchar expectedRes_data[] = {
         133, 236, 236, 119, 130, 100, 226,  84, 146, 229,
@@ -118,7 +129,7 @@ TEST(intensity_transform_gammaCorrection, accuracy2)
     };
 
     Mat_<uchar> expectedRes(10, 10, expectedRes_data);
-
+    u_res.copyTo(res);
     EXPECT_LE(cvtest::norm(res, expectedRes, NORM_INF), 1);
 }
 
@@ -138,9 +149,13 @@ TEST(intensity_transform_autoscaling, accuracy)
     };
 
     Mat_<uchar> image(10, 10, image_data);
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    image.copyTo(u_image);
 
     Mat res;
-    cv::intensity_transform::autoscaling(image, res);
+    UMat u_res(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //cv::intensity_transform::autoscaling(image, res);
+    cv::intensity_transform::autoscaling(u_image, u_res);
 
     uchar expectedRes_data[] = {
          29,  65, 209, 158, 191, 131, 213,  70, 251, 180,
@@ -156,7 +171,7 @@ TEST(intensity_transform_autoscaling, accuracy)
     };
 
     Mat_<uchar> expectedRes(10, 10, expectedRes_data);
-
+    u_res.copyTo(res);
     EXPECT_LE(cvtest::norm(res, expectedRes, NORM_INF), 1);
 }
 
@@ -176,9 +191,13 @@ TEST(intensity_transform_contrastStretching, accuracy)
     };
 
     Mat_<uchar> image(10, 10, image_data);
+    UMat u_image(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    image.copyTo(u_image);
 
     Mat res;
-    cv::intensity_transform::contrastStretching(image, res, 70, 15, 120, 240);
+    UMat u_res(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    //cv::intensity_transform::contrastStretching(image, res, 70, 15, 120, 240);
+    cv::intensity_transform::contrastStretching(u_image, u_res, 70, 15, 120, 240);
 
     uchar expectedRes_data[] = {
           6,  12, 244, 240, 243, 181, 245,  13, 248, 242,
@@ -194,7 +213,7 @@ TEST(intensity_transform_contrastStretching, accuracy)
     };
 
     Mat_<uchar> expectedRes(10, 10, expectedRes_data);
-
+    u_res.copyTo(res);
     EXPECT_LE(cvtest::norm(res, expectedRes, NORM_INF), 1);
 }
 

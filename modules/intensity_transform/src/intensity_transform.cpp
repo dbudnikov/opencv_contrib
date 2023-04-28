@@ -10,19 +10,19 @@ using namespace std;
 namespace cv {
 namespace intensity_transform {
 
-void logTransform(const Mat input, Mat& output)
+void logTransform(const UMat input, UMat& output)
 {
     double maxVal;
     minMaxLoc(input, NULL, &maxVal, NULL, NULL);
     const double c = 255 / log(1 + maxVal);
-    Mat add_one_64f;
+    UMat add_one_64f(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
     input.convertTo(add_one_64f, CV_64F, 1, 1.0f);
-    Mat log_64f;
+    UMat log_64f(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
     cv::log(add_one_64f, log_64f);
     log_64f.convertTo(output, CV_8UC3, c, 0.0f);
 }
 
-void gammaCorrection(const Mat input, Mat& output, const float gamma)
+void gammaCorrection(const UMat input, UMat& output, const float gamma)
 {
     std::array<uchar, 256> table;
     for (int i = 0; i < 256; i++)
@@ -33,14 +33,19 @@ void gammaCorrection(const Mat input, Mat& output, const float gamma)
     LUT(input, table, output);
 }
 
-void autoscaling(const Mat input, Mat& output)
+void autoscaling(const UMat input, UMat& output)
 {
     double minVal, maxVal;
     minMaxLoc(input, &minVal, &maxVal, NULL, NULL);
-    output = 255 * (input - minVal) / (maxVal - minVal);
+    //output = 255 * (input - minVal) / (maxVal - minVal);
+    double multiplier = 255.0 / (maxVal - minVal);
+    UMat sub_img(cv::USAGE_ALLOCATE_DEVICE_MEMORY); 
+    cv::subtract(input, minVal, sub_img);
+    //cv::divide(sub_img, (maxVal - minVal), sub_img);
+    cv::multiply(sub_img, multiplier, output);
 }
 
-void contrastStretching(const Mat input, Mat& output, const int r1, const int s1, const int r2, const int s2)
+void contrastStretching(const UMat input, UMat& output, const int r1, const int s1, const int r2, const int s2)
 {
     std::array<uchar, 256> table;
     for (int i = 0; i < 256; i++)

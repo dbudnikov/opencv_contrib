@@ -38,7 +38,7 @@ namespace intensity_transform {
  * @param input input bgr or grayscale image.
  * @param output resulting image of log transformations.
 */
-CV_EXPORTS_W void logTransform(const Mat input, Mat& output);
+CV_EXPORTS_W void logTransform(const UMat input, UMat& output);
 
 /**
  * @brief Given an input bgr or grayscale image and constant gamma, apply power-law transformation,
@@ -48,7 +48,7 @@ CV_EXPORTS_W void logTransform(const Mat input, Mat& output);
  * @param output resulting image of gamma corrections.
  * @param gamma constant in c*r^gamma where r is pixel value.
 */
-CV_EXPORTS_W void gammaCorrection(const Mat input, Mat& output, const float gamma);
+CV_EXPORTS_W void gammaCorrection(const UMat input, UMat& output, const float gamma);
 
 /**
  * @brief Given an input bgr or grayscale image, apply autoscaling on domain [0, 255] to increase
@@ -57,7 +57,7 @@ CV_EXPORTS_W void gammaCorrection(const Mat input, Mat& output, const float gamm
  * @param input input bgr or grayscale image.
  * @param output resulting image of autoscaling.
 */
-CV_EXPORTS_W void autoscaling(const Mat input, Mat& output);
+CV_EXPORTS_W void autoscaling(const UMat input, UMat& output);
 
 /**
  * @brief Given an input bgr or grayscale image, apply linear contrast stretching on domain [0, 255]
@@ -70,7 +70,7 @@ CV_EXPORTS_W void autoscaling(const Mat input, Mat& output);
  * @param r2 x coordinate of second point (r2, s2) in the transformation function.
  * @param s2 y coordinate of second point (r2, s2) in the transformation function.
 */
-CV_EXPORTS_W void contrastStretching(const Mat input, Mat& output, const int r1, const int s1, const int r2, const int s2);
+CV_EXPORTS_W void contrastStretching(const UMat input, UMat& output, const int r1, const int s1, const int r2, const int s2);
 
 /**
  * @brief Given an input color image, enhance low-light images using the BIMEF method (@cite ying2017bio @cite ying2017new).
