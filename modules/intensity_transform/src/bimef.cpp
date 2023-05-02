@@ -37,7 +37,7 @@
 #include <iostream>
 
 #define BIMEF_PARALLEL
-//#define BIMEF_PERF_PROFILE
+#define BIMEF_PERF_PROFILE
 
 
 namespace cv {

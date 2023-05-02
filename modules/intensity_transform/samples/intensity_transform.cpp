@@ -235,7 +235,7 @@ int main(int argc, char **argv)
             BIMEF(g_image, g_imgBIMEF, g_mu / 100.0f);
         }
         tm.stop();
-        std::cout << "BIMEF processed " << loop_length << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
+        std::cout << "BIMEF processed " << /*loop_length*/ 1 << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
     }
 #endif
 #endif
