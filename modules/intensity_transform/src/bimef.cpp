@@ -34,6 +34,12 @@
 #include <opencv2/imgproc.hpp>
 #endif
 
+#include <iostream>
+
+#define BIMEF_PARALLEL
+#define BIMEF_PERF_PROFILE
+
+
 namespace cv {
 namespace intensity_transform {
 
@@ -41,7 +47,14 @@ namespace intensity_transform {
 static void diff(const Mat_<float>& src, Mat_<float>& srcVDiff, Mat_<float>& srcHDiff)
 {
     srcVDiff = Mat_<float>(src.size());
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0, src.rows), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
     for (int i = 0; i < src.rows; i++)
+#endif
     {
         if (i < src.rows-1)
         {
@@ -58,23 +71,57 @@ static void diff(const Mat_<float>& src, Mat_<float>& srcVDiff, Mat_<float>& src
             }
         }
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
+    //for (int j = 0; j < src.cols; j++)
+    //{
+    //    srcVDiff(src.rows-1,j) = src(0,j) - src(src.rows-1,j);
+    //}
 
     srcHDiff = Mat_<float>(src.size());
-    for (int j = 0; j < src.cols-1; j++)
+    //for (int j = 0; j < src.cols-1; j++)
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0, src.rows), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
+    for (int i = 0; i < src.rows; i++)
+#endif
     {
-        for (int i = 0; i < src.rows; i++)
+        //for (int i = 0; i < src.rows; i++)
+        for(int j = 0; j < src.cols-1; j++)
         {
             srcHDiff(i,j) = src(i,j+1) - src(i,j);
         }
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
+
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0, src.rows), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
     for (int i = 0; i < src.rows; i++)
+#endif
     {
         srcHDiff(i,src.cols-1) = src(i,0) - src(i,src.cols-1);
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
 }
 
 static void computeTextureWeights(const Mat_<float>& x, float sigma, float sharpness, Mat_<float>& W_h, Mat_<float>& W_v)
 {
+#ifdef BIMEF_PERF_PROFILE
+cv::TickMeter tm_all;
+    tm_all.start();
+#endif
     Mat_<float> dt0_v, dt0_h;
     diff(x, dt0_v, dt0_h);
 
@@ -89,7 +136,14 @@ static void computeTextureWeights(const Mat_<float>& x, float sigma, float sharp
     W_h = Mat_<float>(gauker_h.size());
     W_v = Mat_<float>(gauker_v.size());
 
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0,  gauker_h.rows), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
     for (int i = 0; i < gauker_h.rows; i++)
+#endif
     {
         for (int j = 0; j < gauker_h.cols; j++)
         {
@@ -97,6 +151,13 @@ static void computeTextureWeights(const Mat_<float>& x, float sigma, float sharp
             W_v(i,j) = 1 / (std::abs(gauker_v(i,j)) * std::abs(dt0_v(i,j)) + sharpness);
         }
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
+#ifdef BIMEF_PERF_PROFILE
+    tm_all.stop();
+    std::cout << "BIMEF computeTextureWeights (tsmooth #1) " << tm_all.getTimeSec() << " sec)" << std::endl;
+#endif
 }
 
 template <class numeric_t>
@@ -129,6 +190,11 @@ static Eigen::SparseMatrix<numeric_t> spdiags(const Eigen::Matrix<numeric_t,-1,-
 
 static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<float>& W_v_, float lambda)
 {
+#ifdef BIMEF_PERF_PROFILE
+    cv::TickMeter tm_all, tm_parallel, tm_first, tm_last, tm_conj, tm_conj_compute, tm_conj_solve;
+    tm_all.start();
+    tm_first.start();
+#endif
     Eigen::MatrixXf W_h;
     cv2eigen(W_h_, W_h);
     Eigen::MatrixXf tempx(W_h.rows(), W_h.cols());
@@ -153,11 +219,26 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
 
     Eigen::VectorXf dxa(tempx.rows()*tempx.cols());
     Eigen::VectorXf dya(tempy.rows()*tempy.cols());
+#ifdef BIMEF_PERF_PROFILE
+    tm_first.stop();
+#endif
 
-    //Flatten in a col-major order
-    for (Eigen::Index j = 0; j < W_h.cols(); j++)
+#ifdef BIMEF_PERF_PROFILE
+    tm_parallel.start();
+#endif
+    //Flatten in a col-major order (why??? row-major order now)
+    //for (Eigen::Index j = 0; j < W_h.cols(); j++)
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0,  W_h.rows()), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
+    for (Eigen::Index i = 0; i < W_h.rows(); i++)
+#endif
     {
-        for (Eigen::Index i = 0; i < W_h.rows(); i++)
+        //for (Eigen::Index i = 0; i < W_h.rows(); i++)
+        for (Eigen::Index j = 0; j < W_h.cols(); j++)
         {
             dx(j*W_h.rows() + i) = -lambda*W_h(i,j);
             dy(j*W_h.rows() + i) = -lambda*W_v(i,j);
@@ -166,6 +247,9 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
             dya(j*W_h.rows() + i) = -lambda*tempy(i,j);
         }
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
 
     tempx.setZero();
     tempx.col(0) = W_h.col(W_h.cols()-1);
@@ -181,10 +265,19 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
     Eigen::VectorXf dxd2(W_h.rows()*W_h.cols());
     Eigen::VectorXf dyd2(W_v.rows()*W_v.cols());
 
-    //Flatten in a col-major order
-    for (Eigen::Index j = 0; j < tempx.cols(); j++)
+    //Flatten in a col-major order (why??? row-major order now)
+    //for (Eigen::Index j = 0; j < tempx.cols(); j++)
+#ifdef BIMEF_PARALLEL
+    parallel_for_(Range(0, tempx.rows()), [&](const Range& range) {
+    const int begin = range.start;
+    const int end = range.end;
+    for (int i = begin; i < end; i++)
+#else
+    for (Eigen::Index i = 0; i < tempx.rows(); i++)
+#endif
     {
-        for (Eigen::Index i = 0; i < tempx.rows(); i++)
+        //for (Eigen::Index i = 0; i < tempx.rows(); i++)
+        for (Eigen::Index j = 0; j < tempx.cols(); j++)
         {
             dxd1(j*tempx.rows() + i) = -lambda*tempx(i,j);
             dyd1(j*tempx.rows() + i) = -lambda*tempy(i,j);
@@ -193,7 +286,16 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
             dyd2(j*tempx.rows() + i) = -lambda*W_v(i,j);
         }
     }
+#ifdef BIMEF_PARALLEL
+    });
+#endif
+#ifdef BIMEF_PERF_PROFILE
+    tm_parallel.stop();
+#endif
 
+#ifdef BIMEF_PERF_PROFILE
+    tm_last.start();
+#endif
     Eigen::MatrixXf dxd(dxd1.rows(), dxd1.cols()+dxd2.cols());
     dxd << dxd1, dxd2;
 
@@ -218,13 +320,30 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
     Eigen::SparseMatrix<float> A = (Ax + Ay) + Eigen::SparseMatrix<float>((Ax + Ay).transpose()) + spdiags(D, diag_idx_zero, k, k);
 
     //CG solver of Eigen
+#ifdef BIMEF_PERF_PROFILE
+    tm_conj.start();
+#endif
     Eigen::ConjugateGradient<Eigen::SparseMatrix<float>, Eigen::Lower|Eigen::Upper, Eigen::IncompleteCholesky<float> > cg;
     cg.setTolerance(0.1f);
     cg.setMaxIterations(50);
+#ifdef BIMEF_PERF_PROFILE
+    tm_conj_compute.start();
+#endif
     cg.compute(A);
+#ifdef BIMEF_PERF_PROFILE
+    tm_conj_compute.stop();
+#endif
     Mat_<float> img_t = img.t();
     Eigen::Map<const Eigen::VectorXf> tin(img_t.ptr<float>(), img_t.rows*img_t.cols);
+    //tm_conj.start();
+#ifdef BIMEF_PERF_PROFILE
+    tm_conj_solve.start();
+#endif
     Eigen::VectorXf x = cg.solve(tin);
+#ifdef BIMEF_PERF_PROFILE
+    tm_conj_solve.stop();
+    tm_conj.stop();
+#endif
 
     Mat_<float> tout(img.rows, img.cols);
     tout.forEach(
@@ -233,7 +352,18 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
             pixel = x(position[1]*img.rows + position[0]);
         }
     );
+#ifdef BIMEF_PERF_PROFILE
+    tm_last.stop();
+    tm_all.stop();
 
+    std::cout << "BIMEF solveLinearEquation all (tsmooth #2) " << tm_all.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF solveLinearEquation first (tsmooth #2) " << tm_first.getTimeSec() << " sec)" << std::endl; 
+    std::cout << "BIMEF solveLinearEquation parallel (tsmooth #2) " << tm_parallel.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF solveLinearEquation last (tsmooth #2) " << tm_last.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF solveLinearEquation last (CG solver all of Eigen) (tsmooth #2) " << tm_conj.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF solveLinearEquation last (CG solver compute of Eigen) (tsmooth #2) " << tm_conj_compute.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF solveLinearEquation last (CG solver solve of Eigen) (tsmooth #2) " << tm_conj_solve.getTimeSec() << " sec)" << std::endl;
+#endif
     return std::move(tout);
 }
 
@@ -473,6 +603,10 @@ static Mat_<Vec3f> maxEntropyEnhance(const Mat_<Vec3f>& I, const Mat_<uchar>& is
 static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *k, float a, float b)
 {
     CV_INSTRUMENT_REGION()
+#ifdef BIMEF_PERF_PROFILE
+    cv::TickMeter tm_all, tm_smooth, tm_entropy;
+    tm_all.start();
+#endif
 
     Mat input = input_.getMat();
     if (input.empty())
@@ -500,11 +634,19 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
 
     Mat_<float> t_b_resize;
     resize(t_b, t_b_resize, Size(), 0.5, 0.5);
-
+#ifdef BIMEF_PERF_PROFILE
+    tm_smooth.start();
+#endif
     Mat_<float> t_our = tsmooth(t_b_resize, lambda, sigma);
+#ifdef BIMEF_PERF_PROFILE
+    tm_smooth.stop();
+#endif
     resize(t_our, t_our, t_b.size());
 
     // k: exposure ratio
+#ifdef BIMEF_PERF_PROFILE
+    tm_entropy.start();
+#endif
     Mat_<Vec3f> J;
     if (k == NULL)
     {
@@ -533,6 +675,10 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
         );
     }
 
+#ifdef BIMEF_PERF_PROFILE
+    tm_entropy.stop();
+#endif
+
     // W: Weight Matrix
     Mat_<float> W(t_our.size());
     pow(t_our, mu, W);
@@ -549,6 +695,12 @@ static void BIMEF_impl(InputArray input_, OutputArray output_, float mu, float *
             pixel(2) = saturate_cast<uchar>((imgDouble(position[0], position[1])[2] * w + J(position[0], position[1])[2] * (1 - w)) * 255);
         }
     );
+#ifdef BIMEF_PERF_PROFILE
+    tm_all.stop();
+    std::cout << "BIMEF all " << tm_all.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF smooth " << tm_smooth.getTimeSec() << " sec)" << std::endl;
+    std::cout << "BIMEF entropy " << tm_entropy.getTimeSec() << " sec)" << std::endl;
+#endif
 }
 #else
 static void BIMEF_impl(InputArray, OutputArray, float, float *, float, float)
