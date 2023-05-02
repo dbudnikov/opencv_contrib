@@ -230,12 +230,12 @@ int main(int argc, char **argv)
     {
         cv::TickMeter tm;
         tm.start();
-        for (size_t i = 0; i < loop_length; i++)
+        for (size_t i = 0; i < 1 /*loop_length*/; i++)
         {
             BIMEF(g_image, g_imgBIMEF, g_mu / 100.0f);
         }
         tm.stop();
-        std::cout << "BIMEF processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+        std::cout << "BIMEF processed " << loop_length << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
     }
 #endif
 #endif
