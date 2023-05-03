@@ -209,12 +209,12 @@ int main(int argc, char **argv)
     {
         cv::TickMeter tm;
         tm.start();
-        for (size_t i = 0; i < loop_length; i++)
+        for (size_t i = 0; i < 1 /*loop_length*/; i++)
         {
             logTransform(g_image, imgLog);
         }
         tm.stop();
-        std::cout << "logTransform processed " << loop_length << " frames" << " (" << loop_length / tm.getTimeSec() << " FPS)" << std::endl;
+        std::cout << "logTransform processed " << /*loop_length*/ 1 << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
     }
     {
         cv::TickMeter tm;
