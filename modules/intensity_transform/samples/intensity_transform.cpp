@@ -135,7 +135,7 @@ int main(int argc, char **argv)
             logTransform(g_image, imgLog);
         }
         tm.stop();
-        std::cout << "logTransform processed " << /*loop_length*/ 1  << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
+        std::cout << "logTransform processed " << /*loop_length*/ 1 << " frames" << " (" << /*loop_length*/ 1 / tm.getTimeSec() << " FPS)" << std::endl;
     }
     {
         cv::TickMeter tm;

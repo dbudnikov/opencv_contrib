@@ -29,7 +29,7 @@ void logTransform(const Mat input, Mat& output)
     log_64f.convertTo(output, CV_8UC3, c, 0.0f);
 }
 #else
-void logTransform(const Mat input, UMat& output)
+void logTransform(const Mat input, Mat& output)
 {
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     cv::TickMeter tm_all, tm_minmax, tm_log, tm_cvt1, tm_cvt2;
@@ -41,12 +41,12 @@ void logTransform(const Mat input, UMat& output)
     tm_minmax.start();
 #endif
     minMaxLoc(input, NULL, &maxVal, NULL, NULL);
-#ifdef LOG_TRANSFORM_PERF_PROFILE   
+#ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_minmax.stop();
 #endif
 
     const double c = 255 / log(1 + maxVal);
-    Mat add_one_64f(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    Mat add_one_64f;
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_cvt1.start();
 #endif
@@ -54,7 +54,7 @@ void logTransform(const Mat input, UMat& output)
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_cvt1.stop();
 #endif
-    Mat log_64f(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
+    Mat log_64f;
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_log.start();
 #endif
@@ -69,7 +69,7 @@ void logTransform(const Mat input, UMat& output)
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_cvt2.stop();
 #endif
-#ifdef LOG_TRANSFORM_PERF_PROFILE   
+#ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_all.stop();
     std::cout << "logTransform ALL " << tm_all.getTimeSec() << " sec)" << std::endl;
     std::cout << "logTransform minMaxLoc " << tm_minmax.getTimeSec() << " sec)" << std::endl;
