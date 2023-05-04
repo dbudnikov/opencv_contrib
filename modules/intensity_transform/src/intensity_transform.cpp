@@ -26,7 +26,7 @@ void logTransform(const UMat input, UMat& output)
     tm_minmax.start();
 #endif
     minMaxLoc(input, NULL, &maxVal, NULL, NULL);
-#ifdef LOG_TRANSFORM_PERF_PROFILE   
+#ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_minmax.stop();
 #endif
 
@@ -54,7 +54,7 @@ void logTransform(const UMat input, UMat& output)
 #ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_cvt2.stop();
 #endif
-#ifdef LOG_TRANSFORM_PERF_PROFILE   
+#ifdef LOG_TRANSFORM_PERF_PROFILE
     tm_all.stop();
     std::cout << "logTransform ALL " << tm_all.getTimeSec() << " sec)" << std::endl;
     std::cout << "logTransform minMaxLoc " << tm_minmax.getTimeSec() << " sec)" << std::endl;
@@ -81,7 +81,7 @@ void autoscaling(const UMat input, UMat& output)
     minMaxLoc(input, &minVal, &maxVal, NULL, NULL);
     //output = 255 * (input - minVal) / (maxVal - minVal);
     double multiplier = 255.0 / (maxVal - minVal);
-    UMat sub_img(cv::USAGE_ALLOCATE_DEVICE_MEMORY); 
+    UMat sub_img(cv::USAGE_ALLOCATE_DEVICE_MEMORY);
     cv::subtract(input, minVal, sub_img);
     cv::multiply(sub_img, multiplier, output);
 }

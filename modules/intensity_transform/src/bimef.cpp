@@ -357,7 +357,7 @@ static Mat solveLinearEquation(const Mat_<float>& img, Mat_<float>& W_h_, Mat_<f
     tm_all.stop();
 
     std::cout << "BIMEF solveLinearEquation all (tsmooth #2) " << tm_all.getTimeSec() << " sec)" << std::endl;
-    std::cout << "BIMEF solveLinearEquation first (tsmooth #2) " << tm_first.getTimeSec() << " sec)" << std::endl; 
+    std::cout << "BIMEF solveLinearEquation first (tsmooth #2) " << tm_first.getTimeSec() << " sec)" << std::endl;
     std::cout << "BIMEF solveLinearEquation parallel (tsmooth #2) " << tm_parallel.getTimeSec() << " sec)" << std::endl;
     std::cout << "BIMEF solveLinearEquation last (tsmooth #2) " << tm_last.getTimeSec() << " sec)" << std::endl;
     std::cout << "BIMEF solveLinearEquation last (CG solver all of Eigen) (tsmooth #2) " << tm_conj.getTimeSec() << " sec)" << std::endl;

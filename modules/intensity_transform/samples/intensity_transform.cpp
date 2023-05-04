@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     if( cv::ocl::useOpenCL() )
     {
         std::cout << "OpenCV+OpenCL works OK!" << std::endl;
-    } 
+    }
     else
     {
         std::cout << "OpenCV+OpenCL DOESN'T works!" << std::endl;
